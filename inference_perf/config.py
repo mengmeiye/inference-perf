@@ -274,6 +274,8 @@ class PrometheusClientConfig(BaseModel):
     url: Optional[HttpUrl] = None
     filters: List[str] = []
     google_managed: bool = False
+    bearer_token: Optional[str] = None
+    bearer_token_path: Optional[str] = None
 
     @model_validator(mode="after")
     def check_exclusive_fields(self) -> "PrometheusClientConfig":

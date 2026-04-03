@@ -175,6 +175,8 @@ class PrometheusMetricsClient(MetricsClient):
             self.federate_url = config.url.unicode_string().rstrip("/") + "/federate"
             logger.debug(f"Prometheus metrics client configured, querying metrics from '{self.query_url}'")
             self.scrape_interval = config.scrape_interval or 30
+            self.bearer_token = config.bearer_token
+            self.bearer_token_path = config.bearer_token_path
         else:
             raise Exception("prometheus config missing")
 
@@ -485,4 +487,14 @@ class PrometheusMetricsClient(MetricsClient):
         return query_result
 
     def get_headers(self) -> dict[str, Any]:
+        # Explicit token takes priority
+        if self.bearer_token:
+            return {"Authorization": "Bearer " + self.bearer_token}
+        # Fall back to file-based token (e.g. mounted SA token)
+        if self.bearer_token_path:
+            try:
+                with open(self.bearer_token_path) as f:
+                    return {"Authorization": "Bearer " + f.read().strip()}
+            except FileNotFoundError:
+                pass
         return {}
