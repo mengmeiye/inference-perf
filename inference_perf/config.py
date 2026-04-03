@@ -276,6 +276,7 @@ class PrometheusClientConfig(BaseModel):
     google_managed: bool = False
     bearer_token: Optional[str] = None
     bearer_token_path: Optional[str] = None
+    verify_ssl: bool = True
 
     @model_validator(mode="after")
     def check_exclusive_fields(self) -> "PrometheusClientConfig":

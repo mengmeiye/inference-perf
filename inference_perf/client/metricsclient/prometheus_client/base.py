@@ -177,6 +177,7 @@ class PrometheusMetricsClient(MetricsClient):
             self.scrape_interval = config.scrape_interval or 30
             self.bearer_token = config.bearer_token
             self.bearer_token_path = config.bearer_token_path
+            self.verify_ssl = config.verify_ssl
         else:
             raise Exception("prometheus config missing")
 
@@ -268,7 +269,7 @@ class PrometheusMetricsClient(MetricsClient):
         if not is_range_query and not is_google_managed:
             try:
                 logger.debug(f"making PromQL federate query: '{self.federate_url}' with match[]='{match_param}'")
-                response = requests.get(self.federate_url, headers=self.get_headers(), params={"match[]": match_param})
+                response = requests.get(self.federate_url, headers=self.get_headers(), params={"match[]": match_param}, verify=self.verify_ssl)
                 if response is not None and response.status_code == 200:
                     metrics: dict[str, list[str]] = {}
                     for line in response.text.splitlines():
@@ -321,7 +322,7 @@ class PrometheusMetricsClient(MetricsClient):
                     params["step"] = f"{interval}s"
 
                 logger.debug(f"making PromQL query: '{url}' with params={params}")
-                response = requests.get(url, headers=self.get_headers(), params=params)
+                response = requests.get(url, headers=self.get_headers(), params=params, verify=self.verify_ssl)
                 if response is None:
                     continue
 
@@ -434,7 +435,7 @@ class PrometheusMetricsClient(MetricsClient):
         query_result = 0.0
         try:
             logger.debug(f"making PromQL query: '{query}'")
-            response = requests.get(self.query_url, headers=self.get_headers(), params={"query": query, "time": eval_time})
+            response = requests.get(self.query_url, headers=self.get_headers(), params={"query": query, "time": eval_time}, verify=self.verify_ssl)
             if response is None:
                 logger.error("error executing query: %s" % (query))
                 return query_result
